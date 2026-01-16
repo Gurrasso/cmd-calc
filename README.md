@@ -14,7 +14,12 @@ A simple tool that takes in an expression, calculates the value of it and prints
 
 ### Installing
 
-* To download just clone this repo, go inside it and run odin build.
+* To build the program, clone the repo and run this command:
+
+```
+odin build cmd-calc
+```
+
 * If you want you can also add it to path to be able to run it from anywhere
 
 ### Using the package
