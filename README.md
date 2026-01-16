@@ -1,2 +1,49 @@
-# cmd-calc
-A command line tool that calculates the value of an expression
+# CMD CALC
+
+A command line tool that calculates the value of an expression.
+
+## Description
+
+A simple tool that takes in an expression and calculates the value of it.
+
+## Getting Started
+
+### Dependencies
+
+* All you need to compile this is the odin compiler along with the standard odin packages(core, base, ect)
+
+### Installing
+
+* To download just clone this repo, go inside it and run odin build.
+* If you want you can also add it to path to be able to run it from anywhere
+
+### Using the package
+
+* To use the program, just run it in the command line followed by an expression
+
+* Note that cmd-calc.exe could also be cmd-calc or cmd-calc.bin
+
+```
+./cmd-calc.exe (20+4*(23/22)*(23/(2*5)))
+```
+
+## Help
+
+It's just odin code, there shouldn't be any major problems apart from the code being bad. If you have a problem maybe try checking your odin version and if it's outdated, update it.
+
+To check the version run this in your command prompt:
+```
+odin version
+```
+
+## License
+
+Distributed under the MIT License.
+
+## TODO
+
+Make it.
+
+* Maybe remove the limit on tokens
+
+* Continue to update the readme
