@@ -28,6 +28,9 @@ handle_args :: proc() -> (expr: string, should_run: bool){
 			fmt.println(HELP_MESSAGE)
 			// If we have the help flag we dont want to run the actual program, so we return false
 			return output, false 
+		case "--version":
+			fmt.println("Version:", VERSION)
+			return output, false
 		case: 
 			// This will join all the args together to give us out expression, this is not perfect but it works for now
 			if i == 0 do output = arg
@@ -103,7 +106,7 @@ tokenize_error_message :: proc(err: Tokenize_error) -> string{
 	case .INVALID_CHAR:
 		return fmt.tprintf("Invalid character '%v' at position %v", err.char, err.position+1)
 	case .INVALID_MULTIPLY_COUNT:
-		return fmt.tprintf("Invalid number of '*' characters at position %v", err.position+1)
+		return fmt.tprintf("Invalid number of '*' characters at position %v-%v", err.position+1, err.position+1+err.span)
 	case .SUBSTRING_FAILED:
 		return "Internal error while parsing number"
 	case:

@@ -6,13 +6,14 @@ import "core:fmt"
 import "core:strings"
 
 HELP_MESSAGE : string : "INSERT HELP MESSAGE HERE"
+VERSION : string : "pre-release"
 
 main :: proc(){
 	context.logger = log.create_console_logger()
 
 	// Handle args
 	expr, should_run := handle_args()
-	if !should_run do return
+	if !should_run || expr == "" do return
 
 	if ODIN_DEBUG do log.info("Calculating value of expression:", expr)
 
