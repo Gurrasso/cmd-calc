@@ -47,7 +47,8 @@ Error :: enum{
 
 	EXPECTED_CLOSING_PARENTHESIS,
 	FAILED_NUMBER_CONVERSION,
-	EXPECTED_EXPRESSION,
+	EXPECTED_EXPRESSION_AFTER,
+	EXPECTED_EXPRESSION_BEFORE,
 }
 
 // ===========
@@ -164,7 +165,7 @@ tokenize_expr :: proc(expr: string) -> (Tokens, Tokenize_error){
 				token = {
 					.NUMBER,
 					value,
-					current,
+					current-1,
 				}
 
 			} else if char_is_whitespace(char){
@@ -406,9 +407,16 @@ parse_primary :: proc(p: ^Parser) -> (^Expr, Parse_error) {
 		return expr, {kind = .NONE}
 	}
 
-	return new(Expr, mem.arena_allocator(&p.arena)), {
-		.EXPECTED_EXPRESSION,
+	//Think this is fine
+	err : Parse_error = p.current <= 0 ? {
+		.EXPECTED_EXPRESSION_BEFORE,
+		parser_peek(p).pos-1,
+		parser_peek(p).value,
+	} : {
+		.EXPECTED_EXPRESSION_AFTER,
 		parser_previous(p).pos+1,
 		parser_previous(p).value,
 	}
+
+	return new(Expr, mem.arena_allocator(&p.arena)), err
 }

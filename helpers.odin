@@ -91,7 +91,7 @@ print_tokenize_error :: proc(expr: string, err: Tokenize_error){
 	fmt.eprintln(" ", expr)
 
 	// Print caret
-	fmt.eprintln("", strings.repeat(" ", err.position), strings.repeat("^", max(err.span, 1)))
+	fmt.eprintln(strings.repeat(" ", err.position+1), strings.repeat("^", max(err.span, 1)))
 }
 
 // Get the error message depending on the error
@@ -116,7 +116,7 @@ print_parse_error :: proc(expr: string, err: Parse_error){
 	fmt.eprintln(" ", expr)
 
 	// Print caret
-	fmt.eprintln("", strings.repeat(" ", err.position), strings.repeat("^", max(len(err.value), 1)))
+	fmt.eprintln(strings.repeat(" ", err.position+1), strings.repeat("^", max(len(err.value), 1)))
 }
 
 // Get the error message depending on the error
@@ -126,11 +126,13 @@ parse_error_message :: proc(err: Parse_error) -> string{
 		return fmt.tprintf("No Error at character '%v' at position %v", err.value, err.position+1)
 	case .EXPECTED_CLOSING_PARENTHESIS:
 		return fmt.tprintf("Expected closing parenthesis at position %v", err.position+1)
-	case .EXPECTED_EXPRESSION:
+	case .EXPECTED_EXPRESSION_AFTER:
 		return fmt.tprintf("Expected expression after '%v' at position %v", err.value, err.position)
+	case .EXPECTED_EXPRESSION_BEFORE:
+		return fmt.tprintf("Expected expression before '%v' at position %v", err.value, err.position)
 	case .FAILED_NUMBER_CONVERSION:
-		if len(err.value) > 1 do return fmt.tprintf("Number conversion failed at '%v', at position %v-%v", err.value, err.position+1, err.position+1+len(err.value))
-		else do return fmt.tprintf("Number conversion failed at '%v', at position %v", err.value, err.position+1)
+		if len(err.value) > 1 do return fmt.tprintf("Number conversion failed on '%v', at position %v-%v", err.value, err.position+1, err.position+1+len(err.value))
+		else do return fmt.tprintf("Number conversion failed on '%v' at position %v", err.value, err.position+1)
 	case:
 		return "Unknown tokenizer error"
 	}
