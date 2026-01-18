@@ -15,7 +15,7 @@ main :: proc(){
 
 	// Handle args
 	expr, should_run := handle_args()
-	if !should_run || expr == "" do return
+	if !should_run || string_is_whitespace(expr) do return
 
 	if ODIN_DEBUG do log.info("Calculating value of expression:", expr)
 
