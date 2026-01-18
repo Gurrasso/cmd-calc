@@ -56,3 +56,9 @@ Distributed under the MIT License.
 * Write a help message
 
 * More error handling
+
+* Add parenthesis multiplication when there is no operator between the parenthesis and the other expression. Example:
+    ```
+    ./cmd-calc.exe (-2)(10+2)
+    -24
+    ```

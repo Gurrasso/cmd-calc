@@ -231,6 +231,8 @@ eval_expr :: proc(e: ^Expr) -> Value{
 		#partial switch e.op {
 		case .MINUS_SIGN:
 			return -val
+		case .PLUS_SIGN:
+			return val
 		case:
 			panic("Unknown unary operator")
 		}
@@ -364,7 +366,7 @@ parse_power :: proc(p: ^Parser) -> (^Expr, Parse_error) {
 }
 
 parse_unary :: proc(p: ^Parser) -> (^Expr, Parse_error) {
-	if parser_match(p, .MINUS_SIGN) {
+	if parser_match(p, .MINUS_SIGN, .PLUS_SIGN) {
 		op := parser_previous(p).type
 		right, err := parse_unary(p)
 		
