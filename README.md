@@ -38,6 +38,12 @@ odin build cmd-calc
 ./cmd-calc.exe --help
 ```
 
+* And you can visualize the evaluation of the expression
+
+```
+./cmd-calc.exe 2+3-(23/2*5) --tree
+```
+
 ## Help
 
 It's just odin code, there shouldn't be any major problems apart from the code being bad. If you have a problem maybe try checking your odin version and if it's outdated, update it.
@@ -62,3 +68,5 @@ Distributed under the MIT License.
     ./cmd-calc.exe (-2)(10+2)
     -24
     ```
+
+* Add an ascii fallback to the tree visualization in case the unicode is broken

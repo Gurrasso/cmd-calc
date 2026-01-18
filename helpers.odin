@@ -35,6 +35,7 @@ handle_args :: proc() -> (expr: string, should_run: bool){
 		case "--version":
 			fmt.println("Version:", VERSION)
 			return output, false
+		case "--tree":
 		case: 
 			// This will join all the args together to give us out expression, this is not perfect but it works for now
 			if i == 0 do output = arg
@@ -43,6 +44,20 @@ handle_args :: proc() -> (expr: string, should_run: bool){
 	}
 
 	return output, true
+}
+
+// Checks if we have the tree flag
+is_tree_flag :: proc() -> bool{
+	if len(os.args) == 0 do return false
+
+	for arg, i in os.args{
+		switch arg{
+		case "--tree":
+			return true
+		}
+	}
+
+	return false
 }
 
 // ==============
@@ -78,14 +93,22 @@ string_is_whitespace :: proc(str: string) -> bool{
 //  ERROR HANDLING
 // =================
 
-ANSI_RED   :: "\x1b[31m"
-ANSI_RESET :: "\x1b[0m"
-ANSI_YELLOW :: "\x1b[33m"
-ANSI_BLUE   :: "\x1b[34m"
+Color :: struct {
+	reset, dim, yellow, cyan, red, green: string
+}
+
+colors :: Color{
+	reset  = "\x1b[0m",
+	dim    = "\x1b[90m",
+	yellow = "\x1b[33m",
+	cyan   = "\x1b[36m",
+	red		 = "\x1b[31m",
+	green	 = "\x1b[32m",
+}
 
 // Print the error to stderr with some nice formatting
 print_tokenize_error :: proc(expr: string, err: Tokenize_error){
-	fmt.eprintln(ANSI_RED, "ERROR:", ANSI_RESET, tokenize_error_message(err))
+	fmt.eprintln(colors.red, "ERROR:", colors.reset, tokenize_error_message(err))
 
 	// Print expression
 	fmt.eprintln(" ", expr)
@@ -110,7 +133,7 @@ tokenize_error_message :: proc(err: Tokenize_error) -> string{
 
 // Print the error to stderr with some nice formatting
 print_parse_error :: proc(expr: string, err: Parse_error){
-	fmt.eprintln(ANSI_RED, "ERROR:", ANSI_RESET, parse_error_message(err))
+	fmt.eprintln(colors.red, "ERROR:", colors.reset, parse_error_message(err))
 
 	// Print expression
 	fmt.eprintln(" ", expr)
@@ -222,4 +245,88 @@ new_binary :: proc(
 // Converts a string to an f64
 f64_from_string :: proc(s: string) -> (f64, bool){
 	return strconv.parse_f64(s)
+}
+
+// =================
+//   VISUALIZATION 
+// =================
+
+token_type_to_string :: proc(t: Token_type) -> string {
+	#partial switch t {
+	case .PLUS_SIGN:        return "+"
+	case .MINUS_SIGN:       return "-"
+	case .MULT_SIGN:        return "*"
+	case .DIV_SIGN:         return "/"
+	case .EXPONENTIAL_SIGN: return "^"
+	case:                   return "?"
+	}
+}
+
+// Tries to check if unicode is supported
+unicode_supported :: proc() -> bool {
+	// Windows Terminal sets this
+	if os.get_env("WT_SESSION") != "" {
+		return true
+	}
+
+	// UTF-8 locale (Unix, macOS, WSL, Linux)
+	lang := os.get_env("LANG")
+	if strings.contains(lang, "UTF-8") || strings.contains(lang, "utf8") {
+		return true
+	}
+
+	lc_all := os.get_env("LC_ALL")
+	if strings.contains(lc_all, "UTF-8") || strings.contains(lc_all, "utf8") {
+		return true
+	}
+
+	return false
+}
+
+// Prints a tree to visualize the expressions evaluation using unicode characters
+print_expr_unicode :: proc(e: ^Expr, prefix: string = "", is_last: bool = true) {
+	if e == nil do return
+
+	branch := is_last ? "└─" : "├─"
+	fmt.print(prefix, branch)
+
+	switch e.kind {
+	case .NUMBER:
+		fmt.println(colors.cyan, e.value, colors.reset)
+
+	case .UNARY:
+		fmt.println(colors.yellow, token_type_to_string(e.op), colors.reset)
+		new_prefix := strings.concatenate({prefix, (is_last ? "  " : "│ ")})
+		print_expr_unicode(e.expr, new_prefix, true)
+
+	case .BINARY:
+		fmt.println(colors.yellow, token_type_to_string(e.op), colors.reset)
+		new_prefix := strings.concatenate({prefix, (is_last ? "  " : "│ ")})
+		print_expr_unicode(e.left,  new_prefix, false)
+		print_expr_unicode(e.right, new_prefix, true)
+	}
+}
+
+// Prints a tree to visualize the expressions evaluation using only ascii characters
+print_expr_ascii :: proc(e: ^Expr, prefix: string = "", is_last: bool = true) {
+	if e == nil do return
+
+	branch := "+--"
+	fmt.print(prefix, branch)
+
+	switch e.kind {
+	case .NUMBER:
+		fmt.println(colors.cyan, e.value, colors.reset)
+
+	case .UNARY:
+		fmt.println(colors.yellow, token_type_to_string(e.op), colors.reset)
+		new_prefix := strings.concatenate({prefix, (is_last ? "  " : "| ")})
+		print_expr_ascii(e.expr, new_prefix, true)
+
+	case .BINARY:
+		fmt.println(colors.yellow, token_type_to_string(e.op), colors.reset)
+		new_prefix := strings.concatenate({prefix, (is_last ? "  " : "| ")})
+		print_expr_ascii(e.left,  new_prefix, false)
+		print_expr_ascii(e.right, new_prefix, true)
+	}
 }

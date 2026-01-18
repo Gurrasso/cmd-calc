@@ -35,8 +35,10 @@ main :: proc(){
 		return
 	}
 
-	when ODIN_DEBUG do log.info("// PRINTING RESULT //")
-	fmt.println(value)
+	if !is_tree_flag(){ // If we have the tree flag we have already printed the result
+		when ODIN_DEBUG do log.info("// PRINTING RESULT //")
+		fmt.println(value)
+	}
 }
 
 Error :: enum{
@@ -311,6 +313,13 @@ eval_tokens :: proc(tokens: Tokens) -> (Value, Parse_error){
 	// Evalue the expr
 	when ODIN_DEBUG do log.info("// PRINTING EXPRESSION EVALS //")
 	value := eval_expr(expr)
+
+	// Check if we want to print the eval tree
+	if is_tree_flag(){
+		fmt.println(colors.cyan, value ,colors.reset)				// Print our value in a nice color
+		if unicode_supported() do print_expr_unicode(expr)
+		else do print_expr_ascii(expr)
+	}
 
 	return value, {kind = .NONE}
 }
