@@ -53,4 +53,6 @@ Distributed under the MIT License.
 
 ## TODO
 
-Make it.
+* Write a help message
+
+* More error handling
