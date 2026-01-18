@@ -35,6 +35,7 @@ main :: proc(){
 		return
 	}
 
+	when ODIN_DEBUG do log.info("// PRINTING RESULT //")
 	fmt.println(value)
 }
 
