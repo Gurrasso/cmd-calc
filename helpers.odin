@@ -170,9 +170,19 @@ parser_peek :: proc(p: ^Parser) -> Token {
 	return p.tokens[p.current]
 }
 
+parser_peek_next :: proc(p: ^Parser) -> Token{
+	if p.current >= len(p.tokens) - 1 do return {}
+	else do return p.tokens[p.current+1]
+}
+
 // Returns the previous token
 parser_previous :: proc(p: ^Parser) -> Token {
 	return p.tokens[p.current - 1]
+}
+
+parser_previous_2 :: proc(p: ^Parser) -> Token {
+	if p.current < 2 do return {}
+	return p.tokens[p.current - 2]
 }
 
 // Checks if the parser has reached the end
@@ -204,6 +214,16 @@ parser_match :: proc(p: ^Parser, types: ..Token_type) -> bool {
 	}
 	return false
 }
+
+valid_parenthesis_multiplication :: proc(p: ^Parser) -> bool{
+	if parser_is_at_end(p) do return false
+
+	if parser_peek(p).type == .OPEN_PARENTHESIS && (parser_previous(p).type == .NUMBER || parser_previous(p).type == .CLOSED_PARENTHESIS) do return true
+	else if parser_previous(p).type == .CLOSED_PARENTHESIS && (parser_peek(p).type == .NUMBER || parser_peek(p).type == .OPEN_PARENTHESIS) && (parser_previous_2(p).type == .NUMBER || parser_previous_2(p).type == .CLOSED_PARENTHESIS) do return true
+
+	return false
+}
+
 
 // Allocs a number expr with the arena allocator
 new_number :: proc(p: ^Parser, value: f64) -> ^Expr {
