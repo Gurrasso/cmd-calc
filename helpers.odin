@@ -152,7 +152,7 @@ parse_error_message :: proc(err: Parse_error) -> string{
 	case .EXPECTED_EXPRESSION_AFTER:
 		return fmt.tprintf("Expected expression after '%v' at position %v", err.value, err.position)
 	case .EXPECTED_EXPRESSION_BEFORE:
-		return fmt.tprintf("Expected expression before '%v' at position %v", err.value, err.position)
+		return fmt.tprintf("Expected expression before '%v' at position %v", err.value, err.position+2)
 	case .FAILED_NUMBER_CONVERSION:
 		if len(err.value) > 1 do return fmt.tprintf("Number conversion failed on '%v', at position %v-%v", err.value, err.position+1, err.position+1+len(err.value))
 		else do return fmt.tprintf("Number conversion failed on '%v' at position %v", err.value, err.position+1)
