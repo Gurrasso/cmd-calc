@@ -346,18 +346,8 @@ parse_term :: proc(p: ^Parser) -> (^Expr, Parse_error) {
 
 	if err.kind != .NONE do return expr, err
 
-	for (valid_parenthesis_multiplication(p)){
-
-		op: Token_type = .MULT_SIGN
-
-		right, err := parse_power(p)
-
-		if err.kind != .NONE do return right, err
-		expr = new_binary(p, op, expr, right)
-	}
-
-	for parser_match(p, .MULT_SIGN, .DIV_SIGN) {
-		op := parser_previous(p).type
+	for valid_parenthesis_multiplication(p) || parser_match(p, .MULT_SIGN, .DIV_SIGN) {
+		op := valid_parenthesis_multiplication(p) ? Token_type.MULT_SIGN : parser_previous(p).type
 		right, err := parse_power(p)
 
 		if err.kind != .NONE do return right, err
