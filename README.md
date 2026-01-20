@@ -63,10 +63,4 @@ Distributed under the MIT License.
 
 * More error handling
 
-* Add parenthesis multiplication when there is no operator between the parenthesis and the other expression. Example:
-    ```
-    ./cmd-calc.exe (-2)(10+2)
-    -24
-    ```
-
 * Add an ascii fallback to the tree visualization in case the unicode is broken
