@@ -6,18 +6,29 @@ import "core:fmt"
 import "core:strings"
 import "core:math"
 import "core:mem"
+import "core:time"
 
 HELP_MESSAGE : string : "INSERT HELP MESSAGE HERE"
 VERSION : string : "pre-release"
 
 main :: proc(){
+
+	start_time := time.now()
+	
 	context.logger = log.create_console_logger()
+
+	// Just to enable some debug stuff
+	when ODIN_DEBUG {
+		triggered_flags[.print_time] = true
+	 	triggered_flags[.print_tree] = true
+	}
 
 	// Handle args
 	expr, should_run := handle_args()
+
 	if !should_run || string_is_whitespace(expr) do return
 
-	if ODIN_DEBUG do log.info("Calculating value of expression:", expr)
+	when ODIN_DEBUG do log.info("Calculating value of expression:", expr)
 
 	tokens, tokenize_err := tokenize_expr(expr)
 
@@ -35,10 +46,12 @@ main :: proc(){
 		return
 	}
 
-	if !is_tree_flag(){ // If we have the tree flag we have already printed the result
+	if !flag_is_present(.print_tree){ // If we have the tree flag we have already printed the result
 		when ODIN_DEBUG do log.info("// PRINTING RESULT //")
 		fmt.println(value)
 	}
+
+	if flag_is_present(.print_time) do fmt.println("Completed in", time.diff(start_time, time.now()))
 }
 
 Error :: enum{
@@ -278,7 +291,7 @@ Parse_error :: struct{
 Parser :: struct {
 	tokens: []Token,
 	current: int,
-	arena: mem.Arena,
+	arena: mem.Dynamic_Arena,
 }
 
 // Parses the tokens and evaluates the expr
@@ -292,17 +305,13 @@ eval_tokens :: proc(tokens: Tokens) -> (Value, Parse_error){
 		{},
 	}
 
-	// Alloc some data
-	data := make([]u8, mem.DEFAULT_PAGE_SIZE)
-
-
-	// Allocate with an arena allocator so we can free it all later
-	mem.arena_init(&p.arena, data)
+	// Allocate with a dynamic arena allocator so we can free it all later
+	mem.dynamic_arena_init(&p.arena)
 	defer{
-		mem.arena_free_all(&p.arena)
-		delete(data)
+		mem.dynamic_arena_destroy(&p.arena)
 		free(p)
 	}
+
 
 	// Parse the tokens to get an expr
 	when ODIN_DEBUG do log.info("Parsing tokens...")
@@ -315,7 +324,7 @@ eval_tokens :: proc(tokens: Tokens) -> (Value, Parse_error){
 	value := eval_expr(expr)
 
 	// Check if we want to print the eval tree
-	if is_tree_flag(){
+	if flag_is_present(.print_tree){
 		fmt.println(colors.cyan, value ,colors.reset)				// Print our value in a nice color
 		if unicode_supported() do print_expr_unicode(expr)
 		else do print_expr_ascii(expr)
@@ -427,5 +436,5 @@ parse_primary :: proc(p: ^Parser) -> (^Expr, Parse_error) {
 		parser_previous(p).value,
 	}
 
-	return new(Expr, mem.arena_allocator(&p.arena)), err
+	return new(Expr, mem.dynamic_arena_allocator(&p.arena)), err
 }

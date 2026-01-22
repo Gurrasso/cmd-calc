@@ -11,35 +11,83 @@ import "core:mem"
 //   GET ARGS
 // ============
 
-handle_args :: proc() -> (expr: string, should_run: bool){
+Flags :: enum{
+	help,
+	version,
+	print_tree,
+	print_time,
+}
 
-	if len(os.args) == 0 do return "", false
+Flag_info :: struct {
+	flag: string,
+	early_exit: bool,
+	action: proc(),
+}
+
+flag_table : [Flags]Flag_info = {
+	.help = {
+		"--help",
+		true,
+		proc(){
+			fmt.println(HELP_MESSAGE)
+		}
+	},
+	.version = {
+		"--version",
+		true,
+		proc(){
+			fmt.println("Version:", VERSION)
+		}
+	},
+	.print_tree = {
+		"--tree",
+		false,
+		proc() {},
+	},
+	.print_time = {
+		"--time",
+		false,
+		proc() {},
+	}
+}
+
+triggered_flags : [Flags]bool = {}
+
+handle_args :: proc() -> (expr: string, should_run: bool){
 
 	// Get the args to check, if the os is windows the first arg will be the path to the exe
 	args: []string
 	when ODIN_OS == .Windows do args = os.args[1:]
 	else do args = os.args
 
+	// Checks if args is empty
+	if len(args) == 0 do return "", false
+
 	// TODO: Maybe we want to delete args to clear memory?
 
 	// The expression that we want to calculate
 	output: string
 
-	for arg, i in args{
+	// Check if this arg is a flag
+	outer: for arg in args {
+		// Check if this arg is a flag
+		for info, flag_enum in flag_table {
+			if arg == info.flag {
+				triggered_flags[flag_enum] = true
+				if info.action != nil do info.action()
 
-		switch arg{
-		case "--help":
-			fmt.println(HELP_MESSAGE)
-			// If we have the help flag we dont want to run the actual program, so we return false
-			return output, false 
-		case "--version":
-			fmt.println("Version:", VERSION)
-			return output, false
-		case "--tree":
-		case: 
-			// This will join all the args together to give us out expression, this is not perfect but it works for now
-			if i == 0 do output = arg
-			else do output = strings.join({output, arg}, " ")
+				if info.early_exit {
+					return output, false
+				}
+				continue outer
+			}
+		}
+
+		// Not a flag, part of expression
+		if output == "" {
+			output = arg
+		} else {
+			output = strings.join({output, arg}, " ")
 		}
 	}
 
@@ -47,18 +95,10 @@ handle_args :: proc() -> (expr: string, should_run: bool){
 }
 
 // Checks if we have the tree flag
-is_tree_flag :: proc() -> bool{
-	if len(os.args) == 0 do return false
-
-	for arg, i in os.args{
-		switch arg{
-		case "--tree":
-			return true
-		}
-	}
-
-	return false
+flag_is_present :: proc(flag: Flags) -> bool{
+	return triggered_flags[flag]
 }
+
 
 // ==============
 //  TYPE CHECKS
@@ -227,7 +267,7 @@ valid_parenthesis_multiplication :: proc(p: ^Parser) -> bool{
 
 // Allocs a number expr with the arena allocator
 new_number :: proc(p: ^Parser, value: f64) -> ^Expr {
-	e := new(Expr, mem.arena_allocator(&p.arena))
+	e := new(Expr, mem.dynamic_arena_allocator(&p.arena))
 	e^ = {
 		kind  = .NUMBER,
 		value = value,
@@ -237,7 +277,7 @@ new_number :: proc(p: ^Parser, value: f64) -> ^Expr {
 
 // Allocs a unary expr with the arena allocator
 new_unary :: proc(p: ^Parser, op: Token_type, expr: ^Expr) -> ^Expr {
-	e := new(Expr, mem.arena_allocator(&p.arena))
+	e := new(Expr, mem.dynamic_arena_allocator(&p.arena))
 	e^ = {
 		kind = .UNARY,
 		op   = op,
@@ -252,7 +292,7 @@ new_binary :: proc(
 	op: Token_type,
 	left, right: ^Expr
 ) -> ^Expr {
-	e := new(Expr, mem.arena_allocator(&p.arena))
+	e := new(Expr, mem.dynamic_arena_allocator(&p.arena))
 	e^ = {
 		kind = .BINARY,
 		op = op,
