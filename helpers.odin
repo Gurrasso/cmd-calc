@@ -55,10 +55,8 @@ triggered_flags : [Flags]bool = {}
 
 handle_args :: proc() -> (expr: string, should_run: bool){
 
-	// Get the args to check, if the os is windows the first arg will be the path to the exe
 	args: []string
-	when ODIN_OS == .Windows do args = os.args[1:]
-	else do args = os.args
+	args = os.args[1:]
 
 	// Checks if args is empty
 	if len(args) == 0 do return "", false
