@@ -103,11 +103,11 @@ flag_is_present :: proc(flag: Flags) -> bool{
 // ==============
 
 
-NUMBERS : [11]u8: {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'}
+DIGITS : [11]u8: {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'}
 
 // checks if char is a number, a "." or a + or -
 char_is_digit :: proc(char: u8) -> bool{
-	for num in NUMBERS{
+	for num in DIGITS{
 		if char == num do return true
 	}
 
@@ -125,6 +125,16 @@ string_is_whitespace :: proc(str: string) -> bool{
 	}
 
 	return true
+}
+
+VALID_TOKEN_CHARS : [7]u8 : {'(', ')', '+', '-', '/', '*', '^'}
+
+char_is_token :: proc(char: u8) -> bool{
+	for token in VALID_TOKEN_CHARS{
+		if token == char do return true
+	}
+
+	return false
 }
 
 // =================
@@ -152,7 +162,7 @@ print_tokenize_error :: proc(expr: string, err: Tokenize_error){
 	fmt.eprintln(" ", expr)
 
 	// Print caret
-	fmt.eprintln(strings.repeat(" ", err.position+1), strings.repeat("^", max(err.span, 1)))
+	fmt.eprintln(strings.repeat(" ", err.position+1), strings.repeat("^", max(len(err.value), 1)))
 }
 
 // Get the error message depending on the error
@@ -164,6 +174,9 @@ tokenize_error_message :: proc(err: Tokenize_error) -> string{
 		return fmt.tprintf("Invalid character '%v' at position %v", err.char, err.position+1)
 	case .NIL_TOKEN_TYPE:
 		return fmt.tprintf("Nil token type when tokenizing character '%v' at position %v", err.char, err.position+1)
+	case .INVALID_CONSTANT:
+		if len(err.value) > 1 do return fmt.tprintf("Invalid constant: '%v', at position %v-%v", err.value, err.position+1, err.position+len(err.value))
+		else do return fmt.tprintf("Invalid constant: '%v' at position %v", err.value, err.position+1)
 	case:
 		return "Unknown tokenizer error"
 	}
@@ -192,7 +205,7 @@ parse_error_message :: proc(err: Parse_error) -> string{
 	case .EXPECTED_EXPRESSION_BEFORE:
 		return fmt.tprintf("Expected expression before '%v' at position %v", err.value, err.position+2)
 	case .FAILED_NUMBER_CONVERSION:
-		if len(err.value) > 1 do return fmt.tprintf("Number conversion failed on '%v', at position %v-%v", err.value, err.position+1, err.position+1+len(err.value))
+		if len(err.value) > 1 do return fmt.tprintf("Number conversion failed on '%v', at position %v-%v", err.value, err.position+1, err.position+len(err.value))
 		else do return fmt.tprintf("Number conversion failed on '%v' at position %v", err.value, err.position+1)
 	case:
 		return "Unknown tokenizer error"

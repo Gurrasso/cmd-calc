@@ -54,10 +54,28 @@ main :: proc(){
 	if flag_is_present(.print_time) do fmt.println("Completed in", time.diff(start_time, time.now()))
 }
 
+Constant :: struct{
+	name: string,
+	value: string,
+}
+
+// Define some constants
+constants: []Constant = {
+	{
+		"PI",
+		"3.14159265358979323846264338327950288",
+	},
+	{
+		"e",
+		"2.71828182845904523536"
+	}
+}
+
 Error :: enum{
 	NONE,
 	
 	INVALID_CHAR,
+	INVALID_CONSTANT,
 	NIL_TOKEN_TYPE,
 
 	EXPECTED_CLOSING_PARENTHESIS,
@@ -82,8 +100,8 @@ Token :: struct{
 Tokenize_error :: struct{
 	kind: Error, // What type of error is it
 	position: int, // Where in the expression is the character(s) causing the error
-	span: int, // How many characters are contributing to the error
-	char: rune, // What character is causing the error
+	char: rune, // Char that is causing the error 
+	value: string, // Value that is causing the error
 }
 
 // The type of a token
@@ -180,18 +198,53 @@ tokenize_expr :: proc(expr: string) -> (Tokens, Tokenize_error){
 				token = {
 					.NUMBER,
 					value,
-					current-1,
+					number_start,
 				}
 
 			} else if char_is_whitespace(char){
 				// Skip whitespace
 				current += 1
 				continue outer
-			} else {  // Not a valid character
-				return tokens[:], Tokenize_error{
-					kind     = .INVALID_CHAR,
-					position = current,
-					char     = rune(char),
+			} else {  // Check for constants
+				if !char_is_token(char) {
+					word_start := current
+
+					word_cond: for current < len(expr) && !char_is_token(expr[current]){
+						current += 1
+					}
+
+					// Get the value by using the substring of our expression from the start of the number to the current index
+					word := expr[word_start:current]
+
+					word_is_constant: bool = false
+
+					const_check: for constant in constants{
+						if word == constant.name{
+							word_is_constant = true
+
+							token = {
+								type = .NUMBER,
+								value = constant.value,
+								pos = word_start,
+							}
+							
+							break const_check
+						}
+					}
+
+					if ! word_is_constant do return tokens[:], Tokenize_error{
+						kind = .INVALID_CONSTANT,
+						position = word_start,
+						value = word,
+					}
+
+
+				}else {
+					return tokens[:], Tokenize_error{
+						kind     = .INVALID_CHAR,
+						position = current,
+						char     = rune(char),
+					}
 				}
 			}
 
