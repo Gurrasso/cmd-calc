@@ -266,11 +266,12 @@ parser_match :: proc(p: ^Parser, types: ..Token_type) -> bool {
 	return false
 }
 
-valid_parenthesis_multiplication :: proc(p: ^Parser) -> bool{
+valid_no_sign_multiplication :: proc(p: ^Parser) -> bool{
 	if parser_is_at_end(p) do return false
 
 	if parser_peek(p).type == .OPEN_PARENTHESIS && (parser_previous(p).type == .NUMBER || parser_previous(p).type == .CLOSED_PARENTHESIS) do return true
 	else if parser_previous(p).type == .CLOSED_PARENTHESIS && (parser_peek(p).type == .NUMBER || parser_peek(p).type == .OPEN_PARENTHESIS) && (parser_previous_2(p).type == .NUMBER || parser_previous_2(p).type == .CLOSED_PARENTHESIS) do return true
+	else if parser_previous(p).type == .NUMBER && parser_peek(p).type == .NUMBER do return true
 
 	return false
 }

@@ -73,7 +73,7 @@ constants: []Constant = {
 
 Error :: enum{
 	NONE,
-	
+
 	INVALID_CHAR,
 	INVALID_CONSTANT,
 	NIL_TOKEN_TYPE,
@@ -209,26 +209,30 @@ tokenize_expr :: proc(expr: string) -> (Tokens, Tokenize_error){
 				if !char_is_token(char) {
 					word_start := current
 
-					word_cond: for current < len(expr) && !char_is_token(expr[current]){
-						current += 1
-					}
-
-					// Get the value by using the substring of our expression from the start of the number to the current index
-					word := expr[word_start:current]
-
+					word: string
 					word_is_constant: bool = false
 
-					const_check: for constant in constants{
-						if word == constant.name{
-							word_is_constant = true
+					word_cond: for current < len(expr) && !char_is_token(expr[current]){
+						current += 1
 
-							token = {
-								type = .NUMBER,
-								value = constant.value,
-								pos = word_start,
+						word = expr[word_start:current]
+						/* 	
+							Constanly check for constants since they could be written ePI(e * PI)
+							This could break things if a constant has another constant in it. 
+							Also isn't super efficient.
+						*/
+						const_check: for constant in constants{ 
+							if word == constant.name{
+								word_is_constant = true
+
+								token = {
+									type = .NUMBER,
+									value = constant.value,
+									pos = word_start,
+								}
+								
+								break word_cond
 							}
-							
-							break const_check
 						}
 					}
 
@@ -408,8 +412,8 @@ parse_term :: proc(p: ^Parser) -> (^Expr, Parse_error) {
 
 	if err.kind != .NONE do return expr, err
 
-	for valid_parenthesis_multiplication(p) || parser_match(p, .MULT_SIGN, .DIV_SIGN) {
-		op := valid_parenthesis_multiplication(p) ? Token_type.MULT_SIGN : parser_previous(p).type
+	for valid_no_sign_multiplication(p) || parser_match(p, .MULT_SIGN, .DIV_SIGN) {
+		op := valid_no_sign_multiplication(p) ? Token_type.MULT_SIGN : parser_previous(p).type
 		right, err := parse_power(p)
 
 		if err.kind != .NONE do return right, err
