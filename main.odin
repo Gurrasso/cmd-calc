@@ -4,6 +4,7 @@ package calc
 /*
 	TODO: 
 		Newlines kind of break things a little?
+		Should it do no sign multiplication even when there is a space between the tokens?
 */
 
 import "core:log"
