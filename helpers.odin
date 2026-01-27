@@ -131,7 +131,7 @@ VALID_TOKEN_CHARS : [7]u8 : {'(', ')', '+', '-', '/', '*', '^'}
 
 char_is_token :: proc(char: u8) -> bool{
 	for token in VALID_TOKEN_CHARS{
-		if token == char do return true
+		if token == char || char_is_digit(char) do return true
 	}
 
 	return false

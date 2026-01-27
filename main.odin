@@ -1,6 +1,11 @@
 #+feature dynamic-literals
 package calc
 
+/*
+	TODO: 
+		Newlines kind of break things a little?
+*/
+
 import "core:log"
 import "core:fmt"
 import "core:strings"
@@ -192,7 +197,7 @@ tokenize_expr :: proc(expr: string) -> (Tokens, Tokenize_error){
 			if char_is_digit(char){
 				number_start := current
 
-				number_cond: for current < len(expr) && (char_is_digit(expr[current]) || expr[current] == ' '){
+				number_cond: for current < len(expr) && (char_is_digit(expr[current]) || char_is_whitespace(expr[current])){
 					current += 1
 				}
 
