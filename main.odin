@@ -17,6 +17,10 @@ main :: proc(){
 	
 	context.logger = log.create_console_logger()
 
+	defer {
+		free_all(context.temp_allocator)
+	}
+
 	// Just to enable some debug stuff
 	when ODIN_DEBUG {
 		triggered_flags[.print_time] = true
@@ -188,12 +192,16 @@ tokenize_expr :: proc(expr: string) -> (Tokens, Tokenize_error){
 			if char_is_digit(char){
 				number_start := current
 
-				number_cond: for current < len(expr) && char_is_digit(expr[current]){
+				number_cond: for current < len(expr) && (char_is_digit(expr[current]) || expr[current] == ' '){
 					current += 1
 				}
 
 				// Get the value by using the substring of our expression from the start of the number to the current index
 				value := expr[number_start:current]
+
+				// Remove spaces from the string since people might want to write thier numbers with spaces in them like "123 456 789"
+				// I use the temp allocator here because i free it at the end of main, i could make this cleaner if i want tho(TODO)
+				value, _ = strings.remove_all(value, " ", context.temp_allocator)
 
 				token = {
 					.NUMBER,
