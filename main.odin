@@ -194,8 +194,11 @@ tokenize_expr :: proc(expr: string) -> (Tokens, Tokenize_error){
 			}
 			current += 1
 		case:
-			// If the char is a number we want to convert the entire number to a token
-			if char_is_digit(char){
+			if char_is_whitespace(char){
+				// Skip whitespace
+				current += 1
+				continue outer
+			}else if char_is_digit(char){   // If the char is a number we want to convert the entire number to a token
 				number_start := current
 
 				number_cond: for current < len(expr) && (char_is_digit(expr[current]) || char_is_whitespace(expr[current])){
@@ -215,57 +218,49 @@ tokenize_expr :: proc(expr: string) -> (Tokens, Tokenize_error){
 					number_start,
 				}
 
-			} else if char_is_whitespace(char){
-				// Skip whitespace
-				current += 1
-				continue outer
-			} else {  // Check for constants
-				if !char_is_token(char) {
-					word_start := current
+			} else if !char_is_token(char) {  // Check for constants 
+				word_start := current
 
-					word: string
-					word_is_constant: bool = false
+				word: string
+				word_is_constant: bool = false
 
-					word_cond: for current < len(expr) && !char_is_token(expr[current]){
-						current += 1
+				word_cond: for current < len(expr) && !char_is_token(expr[current]){
+					current += 1
 
-						word = expr[word_start:current]
-						/* 	
-							Constanly check for constants since they could be written ePI(e * PI)
-							This could break things if a constant has another constant in it. 
-							Also isn't super efficient.
-						*/
-						const_check: for constant in constants{ 
-							if word == constant.name{
-								word_is_constant = true
+					word = expr[word_start:current]
+					/* 	
+						Constanly check for constants since they could be written ePI(e * PI)
+						This could break things if a constant has another constant in it. 
+						Also isn't super efficient.
+					*/
+					const_check: for constant in constants{ 
+						if word == constant.name{
+							word_is_constant = true
 
-								token = {
-									type = .NUMBER,
-									value = constant.value,
-									pos = word_start,
-								}
-								
-								break word_cond
+							token = {
+								type = .NUMBER,
+								value = constant.value,
+								pos = word_start,
 							}
+							
+							break word_cond
 						}
 					}
+				}
 
-					if ! word_is_constant do return tokens[:], Tokenize_error{
-						kind = .INVALID_CONSTANT,
-						position = word_start,
-						value = word,
-					}
+				if ! word_is_constant do return tokens[:], Tokenize_error{
+					kind = .INVALID_CONSTANT,
+					position = word_start,
+					value = word,
+				}
 
-
-				}else {
-					return tokens[:], Tokenize_error{
-						kind     = .INVALID_CHAR,
-						position = current,
-						char     = rune(char),
-					}
+			}else {
+				return tokens[:], Tokenize_error{
+					kind     = .INVALID_CHAR,
+					position = current,
+					char     = rune(char),
 				}
 			}
-
 		}
 
 		if token.type == .NIL do return tokens[:], Tokenize_error{
