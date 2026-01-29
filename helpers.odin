@@ -110,9 +110,11 @@ handle_args :: proc() -> (expr: string, should_run: bool){
 	return output, true
 }
 
-// Checks if we have the tree flag
-flag_is_present :: proc(flag: Flags) -> bool{
-	return triggered_flags[flag]
+// Checks if a flag or one of multiple flags is present
+flag_is_present :: proc(flags: ..Flags) -> bool{
+	for flag in flags do if triggered_flags[flag] do return true 
+	
+	return false
 }
 
 // Creates a help message string

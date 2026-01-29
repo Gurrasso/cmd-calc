@@ -390,7 +390,7 @@ eval_tokens :: proc(tokens: Tokens) -> (Value, Parse_error){
 	value := eval_expr(expr)
 
 	// Check if we want to print the eval tree
-	if flag_is_present(.print_tree){
+	if flag_is_present(.print_tree, .print_tree_ascii){
 		fmt.println(colors.cyan, value ,colors.reset)				// Print our value in a nice color
 		if unicode_supported() && !flag_is_present(.print_tree_ascii) do print_expr_unicode(expr)
 		else do print_expr_ascii(expr)
