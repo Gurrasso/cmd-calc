@@ -483,7 +483,7 @@ parse_primary :: proc(p: ^Parser) -> (^Expr, Parse_error) {
 		if !parser_match(p, .CLOSED_PARENTHESIS) {
 			return expr, {
 				.EXPECTED_CLOSING_PARENTHESIS,
-				parser_previous(p).pos,
+				parser_previous(p).pos+1,
 				parser_previous(p).value,
 			}
 		}
