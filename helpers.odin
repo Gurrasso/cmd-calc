@@ -15,6 +15,7 @@ Flags :: enum{
 	help,
 	version,
 	print_tree,
+	print_tree_ascii,
 	print_time,
 }
 
@@ -22,6 +23,7 @@ Flag_info :: struct {
 	flag: string,
 	early_exit: bool,
 	action: proc(),
+	desc: string, // A string to describe the flag
 }
 
 flag_table : [Flags]Flag_info = {
@@ -29,25 +31,35 @@ flag_table : [Flags]Flag_info = {
 		"--help",
 		true,
 		proc(){
-			fmt.println(HELP_MESSAGE)
-		}
+			fmt.println(get_help_message())
+		},
+		"Prints this help message"
 	},
 	.version = {
 		"--version",
 		true,
 		proc(){
 			fmt.println("Version:", VERSION)
-		}
+		},
+		"Prints the version"
 	},
 	.print_tree = {
 		"--tree",
 		false,
 		proc() {},
+		"Prints a tree to visualize the expression being calculated"
+	},
+	.print_tree_ascii = {
+		"--tree_ascii",
+		false,
+		proc() {},
+		"Prints a tree using ascii characters to visualize the expression being calculated"
 	},
 	.print_time = {
 		"--time",
 		false,
 		proc() {},
+		"Prints the time it took for the program to complete"
 	}
 }
 
@@ -66,11 +78,15 @@ handle_args :: proc() -> (expr: string, should_run: bool){
 	// The expression that we want to calculate
 	output: string
 
+	// Too keep track of if we are in an expression
+	in_expr: int
+
 	// Check if this arg is a flag
 	outer: for arg in args {
 		// Check if this arg is a flag
 		for info, flag_enum in flag_table {
 			if arg == info.flag {
+				in_expr += 1
 				triggered_flags[flag_enum] = true
 				if info.action != nil do info.action()
 
@@ -82,6 +98,8 @@ handle_args :: proc() -> (expr: string, should_run: bool){
 		}
 
 		// Not a flag, part of expression
+		if in_expr < 2 do in_expr += in_expr == 0 ? 1 : 0
+		else do continue
 		if output == "" {
 			output = arg
 		} else {
@@ -95,6 +113,47 @@ handle_args :: proc() -> (expr: string, should_run: bool){
 // Checks if we have the tree flag
 flag_is_present :: proc(flag: Flags) -> bool{
 	return triggered_flags[flag]
+}
+
+// Creates a help message string
+get_help_message :: proc() -> string{
+	help_string: string = ""
+
+	// Debug mode disclaimer
+	if ODIN_DEBUG do help_string = strings.concatenate({help_string, colors.yellow, "[PLEASE NOTE]: This executable was built in debug mode which means it will print additional debug data", colors.reset, "\n\n"}, context.temp_allocator)
+
+	// Usage
+	help_string = strings.concatenate({help_string, "Usage: cmd-calc <expression> [options...]"}, context.temp_allocator)
+
+	// Flags explanation
+
+	longest_flag: int
+
+	// Find longest flag name
+	for info in flag_table do longest_flag = len(info.flag) > longest_flag ? len(info.flag) : longest_flag
+
+	for info in flag_table{
+		padding := longest_flag - len(info.flag) + 4
+
+		help_string = strings.concatenate({help_string, "\n  ", info.flag, strings.repeat(" ", padding), info.desc}, context.temp_allocator)
+	}
+
+	// Constants
+
+	help_string = strings.concatenate({help_string, "\nPredefined constants:"})
+
+	longest_const: int
+
+	// Find longest constant name
+	for info in constants do longest_const = len(info.name) > longest_const ? len(info.name) : longest_const
+
+	for info in constants {
+		padding := (longest_const - len(info.name)) + 8
+
+		help_string = strings.concatenate({help_string, "\n    ", info.name, strings.repeat(" ", padding), info.value}, context.temp_allocator)
+	}
+
+	return help_string
 }
 
 

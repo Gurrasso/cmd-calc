@@ -5,6 +5,7 @@ package calc
 	TODO: 
 		Newlines kind of break things a little?
 		Should it do no sign multiplication even when there is a space between the tokens?
+		Should for ex 2^3e do 3*e first or 2^3 first?
 */
 
 import "core:log"
@@ -14,7 +15,6 @@ import "core:math"
 import "core:mem"
 import "core:time"
 
-HELP_MESSAGE : string : "INSERT HELP MESSAGE HERE"
 VERSION : string : "pre-release"
 
 main :: proc(){
@@ -392,7 +392,7 @@ eval_tokens :: proc(tokens: Tokens) -> (Value, Parse_error){
 	// Check if we want to print the eval tree
 	if flag_is_present(.print_tree){
 		fmt.println(colors.cyan, value ,colors.reset)				// Print our value in a nice color
-		if unicode_supported() do print_expr_unicode(expr)
+		if unicode_supported() && !flag_is_present(.print_tree_ascii) do print_expr_unicode(expr)
 		else do print_expr_ascii(expr)
 	}
 

@@ -29,7 +29,7 @@ odin build cmd-calc
 * Note that cmd-calc.exe could also be cmd-calc or cmd-calc.bin
 
 ```
-./cmd-calc.exe (20+4*(23/22)*(23/(2*5)))
+./cmd-calc.exe (20+4*(23/PI)*(23/(e*5)))
 ```
 
 * You can also print the help message
@@ -38,7 +38,7 @@ odin build cmd-calc
 ./cmd-calc.exe --help
 ```
 
-* And you can visualize the evaluation of the expression
+* There are also other flags that let you for example visualize the evaluation of the expression
 
 ```
 ./cmd-calc.exe 2+3-(23/2*5) --tree
@@ -58,8 +58,6 @@ odin version
 Distributed under the MIT License.
 
 ## TODO
-
-* Write a help message
 
 * More error handling
 
