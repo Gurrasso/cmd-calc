@@ -124,7 +124,7 @@ get_help_message :: proc() -> string{
 	// Debug mode disclaimer
 	if ODIN_DEBUG do help_string = strings.concatenate({help_string, colors.yellow, "[PLEASE NOTE]: This executable was built in debug mode which means it will print additional debug data", colors.reset, "\n\n"}, context.temp_allocator)
 
-	// Usage
+	// Usage TODO: Get the exe name and use that instead of cmd-calc
 	help_string = strings.concatenate({help_string, "Usage: cmd-calc <expression> [options...]"}, context.temp_allocator)
 
 	// Flags explanation
