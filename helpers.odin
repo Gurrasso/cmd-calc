@@ -117,6 +117,8 @@ flag_is_present :: proc(flags: ..Flags) -> bool{
 	return false
 }
 
+
+
 // Creates a help message string
 get_help_message :: proc() -> string{
 	help_string: string = ""
@@ -124,11 +126,16 @@ get_help_message :: proc() -> string{
 	// Debug mode disclaimer
 	if ODIN_DEBUG do help_string = strings.concatenate({help_string, colors.yellow, "[PLEASE NOTE]: This executable was built in debug mode which means it will print additional debug data", colors.reset, "\n\n"}, context.temp_allocator)
 
-	// Usage TODO: Get the exe name and use that instead of cmd-calc
-	help_string = strings.concatenate({help_string, "Usage: cmd-calc <expression> [options...]"}, context.temp_allocator)
+	// Usage
+
+	// Get the exe name by looking in the first arg of os.args
+	exe_name := os.args[0]
+
+	exe_name = exe_name[strings.last_index_any(exe_name, "/\\")+1:]
+
+	help_string = strings.concatenate({help_string, "Usage: ", exe_name, " <expression> [options...]"}, context.temp_allocator)
 
 	// Flags explanation
-
 	longest_flag: int
 
 	// Find longest flag name
@@ -141,7 +148,6 @@ get_help_message :: proc() -> string{
 	}
 
 	// Constants
-
 	help_string = strings.concatenate({help_string, "\nPredefined constants:"})
 
 	longest_const: int
