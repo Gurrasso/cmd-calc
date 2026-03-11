@@ -6,6 +6,7 @@ package calc
 		Newlines kind of break things a little?
 		Should it do no sign multiplication even when there is a space between the tokens?
 		Should for ex 2^3e do 3*e first or 2^3 first?
+		Profiling with spall
 */
 
 import "core:log"
