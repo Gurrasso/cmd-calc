@@ -404,17 +404,17 @@ token_type_to_string :: proc(t: Token_type) -> string {
 // Tries to check if unicode is supported
 unicode_supported :: proc() -> bool {
 	// Windows Terminal sets this
-	if os.get_env("WT_SESSION") != "" {
+	if os.get_env("WT_SESSION", context.temp_allocator) != "" {
 		return true
 	}
 
 	// UTF-8 locale (Unix, macOS, WSL, Linux)
-	lang := os.get_env("LANG")
+	lang := os.get_env("LANG", context.temp_allocator)
 	if strings.contains(lang, "UTF-8") || strings.contains(lang, "utf8") {
 		return true
 	}
 
-	lc_all := os.get_env("LC_ALL")
+	lc_all := os.get_env("LC_ALL", context.temp_allocator)
 	if strings.contains(lc_all, "UTF-8") || strings.contains(lc_all, "utf8") {
 		return true
 	}
